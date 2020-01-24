@@ -16,7 +16,7 @@ ControllerHandler::ControllerHandler() :
 	{
 		OnControllerAdded(nullptr, controller);
 	}
-
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	StartUpdate();
 }
 
@@ -27,14 +27,15 @@ ControllerHandler::~ControllerHandler()
 
 void ControllerHandler::StartUpdate()
 {
-	if (controllers_.empty()) {
-		// Exit if there's currently no controller connected
-		return;
-	}
-
 	running_.store(true);
 	while (running_.load()) {
 		critical_section::scoped_lock lock{ lock_ };
+
+		if (controllers_.empty()) {
+			// Exit if there's currently no controller connected
+			return;
+		}
+
 		// More info: https://stackoverflow.com/a/57073912/9017481
 		auto buttons = controllers_.at(0).ButtonCount();
 		auto switches = controllers_.at(0).SwitchCount();
@@ -50,16 +51,23 @@ void ControllerHandler::StartUpdate()
 		SetCursorPosition(0, 2);
 
 		fmt::print("Timestamp: {}\n", timestamp);
+		fmt::print("\n");
 
 		fmt::print("Axis count: {}\n", axis);
 		for (auto i = 0; i < axis; i++) {
 			fmt::print("Axis {}: {}  \n", i, fmt::format("{:.{}f}", axisArray[i], 8));
 		}
+		fmt::print("\n");
 
-		// Don't need button for now
 		fmt::print("Button count: {}\n", buttons);
 		for (auto i = 0; i < buttons; i++) {
 			fmt::print("Button {}: {}  \n", i, buttonsArray[i]);
+		}
+		fmt::print("\n");
+
+		fmt::print("Switch count: {}\n", switches);
+		for (auto i = 0; i < switches; i++) {
+			fmt::print("Switch {}: {}  \n", i, switchesArray[i]);
 		}
 	}
 }
@@ -92,7 +100,7 @@ void ControllerHandler::OnControllerRemoved(const IInspectable&, const RawGameCo
 
 	if (it != end(controllers_))
 	{
-		fmt::print("Remove \"{}\".\n", winrt::to_string(controller.DisplayName()));
+		fmt::print("Removed \"{}\".\n", winrt::to_string(controller.DisplayName()));
 		controllers_.erase(it);
 	}
 }
