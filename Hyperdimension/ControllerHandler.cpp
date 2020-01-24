@@ -17,7 +17,9 @@ ControllerHandler::ControllerHandler() :
 		OnControllerAdded(nullptr, controller);
 	}
 	std::this_thread::sleep_for(std::chrono::milliseconds(100));
-	StartUpdate();
+	if (!controllers_.empty()) {
+		StartUpdate();
+	}
 }
 
 ControllerHandler::~ControllerHandler()
